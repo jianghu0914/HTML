@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>身体记录</title>
+  <style>
+	body {
+	  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+	  padding: 20px;
+	  background: #f9f9f9;
+	  color: #333;
+	  line-height: 1.6;
+	}
+	h1 {
+	  text-align: center;
+	  margin-bottom: 30px;
+	  color: #555;
+	}
+	.form-group {
+	  margin-bottom: 15px;
+	}
+	label {
+	  display: block;
+	  margin-bottom: 5px;
+	  font-weight: bold;
+	}
+	input, textarea {
+	  width: 100%;
+	  padding: 10px;
+	  border: 1px solid #ccc;
+	  border-radius: 8px;
+	  box-sizing: border-box;
+	}
+	button {
+	  background: #4a6cf7;
+	  color: white;
+	  border: none;
+	  padding: 12px 20px;
+	  border-radius: 8px;
+	  cursor: pointer;
+	  font-size: 16px;
+	  width: 100%;
+	  margin-top: 10px;
+	}
+	button:hover {
+	  background: #3a5ae0;
+	}
+	.record {
+	  background: white;
+	  padding: 15px;
+	  margin: 15px 0;
+	  border-radius: 10px;
+	  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	}
+	.record-date {
+	  font-weight: bold;
+	  color: #4a6cf7;
+	  margin-bottom: 5px;
+	}
+	.record-data {
+	  font-size: 14px;
+	  white-space: pre-wrap;
+	}
+  </style>
+</head>
+<body>
+  <h1>🫶 身体记录</h1>
+
+  <div class="form-group">
+	<label>日期（默认今天）</label>
+	<input type="date" id="date" value="" />
+  </div>
+
+  <div class="form-group">
+	<label>身高 (cm)</label>
+	<input type="number" step="0.1" id="height" placeholder="如 155.7" />
+  </div>
+
+  <div class="form-group">
+	<label>体重 (kg)</label>
+	<input type="number" step="0.1" id="weight" placeholder="如 46.0" />
+  </div>
+
+  <div class="form-group">
+	<label>腰围 (cm)</label>
+	<input type="number" step="0.1" id="waist" placeholder="如 73" />
+  </div>
+
+  <div class="form-group">
+	<label>肩宽 (cm)</label>
+	<input type="number" step="0.1" id="shoulder" placeholder="如 35" />
+  </div>
+
+  <div class="form-group">
+	<label>臂展 (cm)</label>
+	<input type="number" step="0.1" id="arm" placeholder="如 70" />
+  </div>
+
+  <div class="form-group">
+	<label>备注（心情/状态/衣着等）</label>
+	<textarea id="note" rows="3" placeholder="比如：穿鞋、刚吃完饭、新年第一天..."></textarea>
+  </div>
+
+  <button onclick="saveRecord()">💾 保存记录</button>
+
+  <h2 style="margin-top: 40px;">📜 历史记录</h2>
+  <div id="records"></div>
+
+  <script>
+	// 设置默认日期为今天
+	const today = new Date().toISOString().split('T')[0];
+	document.getElementById('date').value = today;
+
+	// 从本地存储加载并显示记录
+	function loadRecords() {
+	  const records = JSON.parse(localStorage.getItem('bodyRecords') || '[]');
+	  const container = document.getElementById('records');
+	  container.innerHTML = '';
+
+	  // 按日期倒序（最新在前）
+	  records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+	  records.forEach(item => {
+		const div = document.createElement('div');
+		div.className = 'record';
+		let dataText = '';
+		if (item.height) dataText += `身高: ${item.height} cm\n`;
+		if (item.weight) dataText += `体重: ${item.weight} kg\n`;
+		if (item.waist) dataText += `腰围: ${item.waist} cm\n`;
+		if (item.shoulder) dataText += `肩宽: ${item.shoulder} cm\n`;
+		if (item.arm) dataText += `臂展: ${item.arm} cm\n`;
+		if (item.note) dataText += `备注: ${item.note}\n`;
+
+		div.innerHTML = `
+		  <div class="record-date">${item.date}</div>
+		  <div class="record-data">${dataText}</div>
+		`;
+		container.appendChild(div);
+	  });
+	}
+
+	// 保存记录
+	function saveRecord() {
+	  const date = document.getElementById('date').value;
+	  if (!date) {
+		alert('请填写日期');
+		return;
+	  }
+
+	  const record = {
+		date,
+		height: document.getElementById('height').value || null,
+		weight: document.getElementById('weight').value || null,
+		waist: document.getElementById('waist').value || null,
+		shoulder: document.getElementById('shoulder').value || null,
+		arm: document.getElementById('arm').value || null,
+		note: document.getElementById('note').value.trim() || null
+	  };
+
+	  const records = JSON.parse(localStorage.getItem('bodyRecords') || '[]');
+	  records.push(record);
+	  localStorage.setItem('bodyRecords', JSON.stringify(records));
+
+	  // 清空表单（保留日期为今天）
+	  document.getElementById('height').value = '';
+	  document.getElementById('weight').value = '';
+	  document.getElementById('waist').value = '';
+	  document.getElementById('shoulder').value = '';
+	  document.getElementById('arm').value = '';
+	  document.getElementById('note').value = '';
+
+	  loadRecords(); // 重新加载
+	  alert('✅ 记录已保存！');
+	}
+
+	// 页面加载时显示历史记录
+	window.onload = loadRecords;
+  </script>
+</body>
+</html>
